@@ -2,6 +2,23 @@
 Modeltranslation
 ================
 
+-----
+
+.. image:: http://img.shields.io/coveralls/deschler/django-modeltranslation.svg?style=flat-square
+    :target: https://coveralls.io/r/deschler/django-modeltranslation
+
+.. image:: https://img.shields.io/pypi/v/django-modeltranslation.svg?style=flat-square
+    :target: https://pypi.python.org/pypi/django-modeltranslation/
+    :alt: Latest PyPI version
+
+.. image:: https://img.shields.io/pypi/pyversions/django-modeltranslation.svg?style=flat-square
+    :target: https://pypi.python.org/pypi/django-modeltranslation/
+    :alt: Supported Python versions
+
+.. image:: https://img.shields.io/gitter/room/django-modeltranslation/community?color=4DB798&style=flat-square
+    :alt: Join the chat at https://gitter.im/django-modeltranslation/community
+    :target: https://gitter.im/django-modeltranslation/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
+
 
 The modeltranslation application is used to translate dynamic content of
 existing Django models to an arbitrary number of languages without having to
