@@ -1,20 +1,39 @@
+# mypy: disable-error-code="django-manager-missing"
+from __future__ import annotations
+
 from django.contrib.auth.models import Permission
 from django.core import validators
 from django.db import models
 from django.utils.translation import gettext_lazy
 
 from modeltranslation.manager import MultilingualManager
+from typing import Any
 
 
 class TestModel(models.Model):
-    title = models.CharField(gettext_lazy('title'), max_length=255)
+    title = models.CharField(gettext_lazy("title"), max_length=255)
     text = models.TextField(blank=True, null=True)
     url = models.URLField(blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
+    dynamic_default = models.CharField(default=gettext_lazy("password"), max_length=255)
 
 
 class UniqueNullableModel(models.Model):
     title = models.CharField(null=True, unique=True, max_length=255)
+
+
+class ModelWithConstraint(models.Model):
+    title = models.CharField(max_length=255)
+    sub_title = models.CharField(max_length=255)
+
+    class Meta:
+        unique_together = (("title", "sub_title"),)
+        constraints = [
+            models.UniqueConstraint(
+                fields=["title", "sub_title"],
+                name="unique_fields",
+            )
+        ]
 
 
 # ######### Proxy model testing
@@ -32,7 +51,7 @@ class ProxyTestModel(TestModel):
 
 
 class FallbackModel(models.Model):
-    title = models.CharField(gettext_lazy('title'), max_length=255)
+    title = models.CharField(gettext_lazy("title"), max_length=255)
     text = models.TextField(blank=True, null=True)
     url = models.URLField(blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
@@ -40,7 +59,7 @@ class FallbackModel(models.Model):
 
 
 class FallbackModel2(models.Model):
-    title = models.CharField(gettext_lazy('title'), max_length=255)
+    title = models.CharField(gettext_lazy("title"), max_length=255)
     text = models.TextField(blank=True, null=True)
     url = models.URLField(blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
@@ -50,21 +69,21 @@ class FallbackModel2(models.Model):
 
 
 class FileFieldsModel(models.Model):
-    title = models.CharField(gettext_lazy('title'), max_length=255)
-    file = models.FileField(upload_to='modeltranslation_tests', null=True, blank=True)
-    file2 = models.FileField(upload_to='modeltranslation_tests')
-    image = models.ImageField(upload_to='modeltranslation_tests', null=True, blank=True)
+    title = models.CharField(gettext_lazy("title"), max_length=255)
+    file = models.FileField(upload_to="modeltranslation_tests", null=True, blank=True)
+    file2 = models.FileField(upload_to="modeltranslation_tests")
+    image = models.ImageField(upload_to="modeltranslation_tests", null=True, blank=True)
 
 
 # ######### Foreign Key / OneToOneField / ManytoManyField testing
 
 
 class NonTranslated(models.Model):
-    title = models.CharField(gettext_lazy('title'), max_length=255)
+    title = models.CharField(gettext_lazy("title"), max_length=255)
 
 
 class ForeignKeyModel(models.Model):
-    title = models.CharField(gettext_lazy('title'), max_length=255)
+    title = models.CharField(gettext_lazy("title"), max_length=255)
     test = models.ForeignKey(
         TestModel,
         null=True,
@@ -96,7 +115,7 @@ class ForeignKeyModel(models.Model):
 
 
 class OneToOneFieldModel(models.Model):
-    title = models.CharField(gettext_lazy('title'), max_length=255)
+    title = models.CharField(gettext_lazy("title"), max_length=255)
     test = models.OneToOneField(
         TestModel,
         null=True,
@@ -115,7 +134,7 @@ class OneToOneFieldModel(models.Model):
 
 
 class ManyToManyFieldModel(models.Model):
-    title = models.CharField(gettext_lazy('title'), max_length=255)
+    title = models.CharField(gettext_lazy("title"), max_length=255)
     test = models.ManyToManyField(
         TestModel,
         related_name="m2m_test_ref",
@@ -123,8 +142,10 @@ class ManyToManyFieldModel(models.Model):
     self_call_1 = models.ManyToManyField("self")
     # test multiple self m2m
     self_call_2 = models.ManyToManyField("self")
-    through_model = models.ManyToManyField(TestModel, through="CustomThroughModel")
-    trans_through_model = models.ManyToManyField(
+    through_model = models.ManyToManyField[TestModel, "CustomThroughModel"](
+        TestModel, through="CustomThroughModel"
+    )
+    trans_through_model = models.ManyToManyField[TestModel, Any](
         TestModel, related_name="m2m_trans_through_model_ref", through="RegisteredThroughModel"
     )
     untrans = models.ManyToManyField(
@@ -139,7 +160,7 @@ class CustomThroughModel(models.Model):
 
     @property
     def test_property(self):
-        return "%s_%s" % (self.__class__.__name__, self.rel_1_id)
+        return "{}_{}".format(self.__class__.__name__, self.rel_1_id)
 
     def test_method(self):
         return self.rel_1_id + 1
@@ -183,8 +204,8 @@ class FancyDescriptor:
     def __get__(self, instance, owner):
         length = instance.__dict__[self.field.name]
         if length is None:
-            return ''
-        return 'a' * length
+            return ""
+        return "a" * length
 
     def __set__(self, obj, value):
         if isinstance(value, int):
@@ -197,7 +218,7 @@ class FancyDescriptor:
 
 class FancyField(models.PositiveIntegerField):
     def __init__(self, *args, **kwargs):
-        kwargs.setdefault('default', '')
+        kwargs.setdefault("default", "")
         super().__init__(*args, **kwargs)
 
     def contribute_to_class(self, cls, name):
@@ -221,41 +242,41 @@ class DescriptorModel(models.Model):
 
 
 class MultitableModelA(models.Model):
-    titlea = models.CharField(gettext_lazy('title a'), max_length=255)
+    titlea = models.CharField(gettext_lazy("title a"), max_length=255)
 
 
 class MultitableModelB(MultitableModelA):
-    titleb = models.CharField(gettext_lazy('title b'), max_length=255)
+    titleb = models.CharField(gettext_lazy("title b"), max_length=255)
 
 
 class MultitableModelC(MultitableModelB):
-    titlec = models.CharField(gettext_lazy('title c'), max_length=255)
+    titlec = models.CharField(gettext_lazy("title c"), max_length=255)
 
 
 class MultitableModelD(MultitableModelB):
-    titled = models.CharField(gettext_lazy('title d'), max_length=255)
+    titled = models.CharField(gettext_lazy("title d"), max_length=255)
 
 
 # ######### Abstract inheritance testing
 
 
 class AbstractModelA(models.Model):
-    titlea = models.CharField(gettext_lazy('title a'), max_length=255)
+    titlea = models.CharField(gettext_lazy("title a"), max_length=255)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.titlea = 'title_a'
+        self.titlea = "title_a"
 
     class Meta:
         abstract = True
 
 
 class AbstractModelB(AbstractModelA):
-    titleb = models.CharField(gettext_lazy('title b'), max_length=255)
+    titleb = models.CharField(gettext_lazy("title b"), max_length=255)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.titleb = 'title_b'
+        self.titleb = "title_b"
 
 
 # ######### Fields inheritance testing
@@ -340,12 +361,12 @@ class FilteredManager(MultilingualManager):
 
 
 class FilteredTestModel(models.Model):
-    title = models.CharField(gettext_lazy('title'), max_length=255)
+    title = models.CharField(gettext_lazy("title"), max_length=255)
     objects = FilteredManager()
 
 
 class ForeignKeyFilteredModel(models.Model):
-    title = models.CharField(gettext_lazy('title'), max_length=255)
+    title = models.CharField(gettext_lazy("title"), max_length=255)
     test = models.ForeignKey(
         FilteredTestModel,
         null=True,
@@ -355,28 +376,28 @@ class ForeignKeyFilteredModel(models.Model):
 
 
 class ManagerTestModel(models.Model):
-    title = models.CharField(gettext_lazy('title'), max_length=255)
-    visits = models.IntegerField(gettext_lazy('visits'), default=0)
+    title = models.CharField(gettext_lazy("title"), max_length=255)
+    visits = models.IntegerField(gettext_lazy("visits"), default=0)
     description = models.CharField(max_length=255, null=True)
 
     class Meta:
-        ordering = ('-visits',)
+        ordering = ("-visits",)
 
 
 class CustomManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().filter(title__contains='a').exclude(description__contains='x')
+        return super().get_queryset().filter(title__contains="a").exclude(description__contains="x")
 
     def custom_qs(self):
         return super().get_queryset()
 
     def foo(self):
-        return 'bar'
+        return "bar"
 
 
 class CustomManagerTestModel(models.Model):
-    title = models.CharField(gettext_lazy('title'), max_length=255)
-    description = models.CharField(max_length=255, null=True, db_column='xyz')
+    title = models.CharField(gettext_lazy("title"), max_length=255)
+    description = models.CharField(max_length=255, null=True, db_column="xyz")
     objects = CustomManager()
 
     another_mgr_name = CustomManager()
@@ -392,7 +413,7 @@ class CustomManager2(models.Manager):
 
 
 class CustomManager2TestModel(models.Model):
-    title = models.CharField(gettext_lazy('title'), max_length=255)
+    title = models.CharField(gettext_lazy("title"), max_length=255)
     objects = CustomManager2()
 
 
@@ -411,13 +432,13 @@ class CustomManagerBaseModel(models.Model):
 
 
 class CustomManagerChildTestModel(CustomManagerBaseModel):
-    title = models.CharField(gettext_lazy('title'), max_length=255)
+    title = models.CharField(gettext_lazy("title"), max_length=255)
 
-    objects = CustomManager2()
+    objects = CustomManager2()  # type: ignore[misc]
 
 
 class PlainChildTestModel(CustomManagerBaseModel):
-    title = models.CharField(gettext_lazy('title'), max_length=255)
+    title = models.CharField(gettext_lazy("title"), max_length=255)
 
 
 # ######### Required fields testing
@@ -434,7 +455,7 @@ class RequiredModel(models.Model):
 
 
 class ConflictModel(models.Model):
-    title = models.CharField(gettext_lazy('title'), max_length=255)
+    title = models.CharField(gettext_lazy("title"), max_length=255)
     title_de = models.IntegerField()
 
 
@@ -446,7 +467,7 @@ class AbstractConflictModelA(models.Model):
 
 
 class AbstractConflictModelB(AbstractConflictModelA):
-    title = models.CharField(gettext_lazy('title'), max_length=255)
+    title = models.CharField(gettext_lazy("title"), max_length=255)
 
 
 class MultitableConflictModelA(models.Model):
@@ -454,7 +475,7 @@ class MultitableConflictModelA(models.Model):
 
 
 class MultitableConflictModelB(MultitableConflictModelA):
-    title = models.CharField(gettext_lazy('title'), max_length=255)
+    title = models.CharField(gettext_lazy("title"), max_length=255)
 
 
 # ######### Complex M2M with abstract classes and custom managers
@@ -487,8 +508,8 @@ class ModelX(AbstractModelX):
 
 
 class AbstractModelXY(models.Model):
-    model_x = models.ForeignKey('ModelX', on_delete=models.CASCADE)
-    model_y = models.ForeignKey('ModelY', on_delete=models.CASCADE)
+    model_x = models.ForeignKey("ModelX", on_delete=models.CASCADE)
+    model_y = models.ForeignKey("ModelY", on_delete=models.CASCADE)
 
     class Meta:
         abstract = True
@@ -504,7 +525,7 @@ class CustomManagerY(models.Manager):
 
 class AbstractModelY(models.Model):
     title = models.CharField(max_length=255)
-    xs = models.ManyToManyField('ModelX', through='ModelXY')
+    xs = models.ManyToManyField[ModelX, ModelXY]("ModelX", through="ModelXY")
     objects = CustomManagerY()
 
     class Meta:

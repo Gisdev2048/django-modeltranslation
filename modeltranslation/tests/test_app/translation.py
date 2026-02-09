@@ -1,10 +1,8 @@
-from modeltranslation.translator import TranslationOptions, translator
+from modeltranslation import translator
 
-from .models import News
-
-
-class NewsTranslationOptions(TranslationOptions):
-    fields = ('title',)
+from . import models
 
 
-translator.register(News, NewsTranslationOptions)
+@translator.register(models.News)
+class NewsTranslationOptions(translator.TranslationOptions):
+    fields = ("title",)

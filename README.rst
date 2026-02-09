@@ -2,6 +2,11 @@
 Modeltranslation
 ================
 
+.. image:: https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/banner2-direct.svg
+   :target: https://stand-with-ukraine.pp.ua
+   :alt: Stand With Ukraine
+
+-----
 
 .. image:: http://img.shields.io/coveralls/deschler/django-modeltranslation.svg?style=flat-square
     :target: https://coveralls.io/r/deschler/django-modeltranslation
@@ -17,7 +22,6 @@ Modeltranslation
 .. image:: https://img.shields.io/gitter/room/django-modeltranslation/community?color=4DB798&style=flat-square
     :alt: Join the chat at https://gitter.im/django-modeltranslation/community
     :target: https://gitter.im/django-modeltranslation/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
-
 
 
 The modeltranslation application is used to translate dynamic content of
